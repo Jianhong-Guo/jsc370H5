@@ -53,9 +53,8 @@ life[, thinness_1_19:= ifelse(is.na(thinness_1_19), mean(thinness_1_19,na.rm =TR
 life[, thinness_5_9:= ifelse(is.na(thinness_5_9), mean(thinness_5_9,na.rm =TRUE), thinness_5_9),by = .(Year, Status)]
 life[, income_composition:= ifelse(is.na(income_composition), mean(income_composition,na.rm =TRUE), income_composition),by = .(Year, Status)]
 life[, Schooling:= ifelse(is.na(Schooling), mean(Schooling,na.rm =TRUE), Schooling), by = .(Year, Status)]
-life[, Country:= ifelse(Country=="United Kingdom of Great Britain and Northern Ireland", "United Kingdom", Country)]
-life[, Country:= ifelse(Country=="Democratic People's Republic of Korea", "Korea", Country)]
-life[, Country:= ifelse(Country=="Democratic Republic of the Congo", "Congo", Country)]
+life[, Country:= ifelse(Country=="United Kingdom of Great Britain and Northern Ireland", "United Kingdom", ifelse(Country=="Democratic People's Republic of Korea","Korea",Country ))]
+
 new_life = life[, list(mean_BMI=mean(BMI), mean_Schooling=mean(Schooling), mean_life_expectancy=mean(life_expectancy)), by=Country]
 
 ```
@@ -84,10 +83,8 @@ new_life %>%
 
 As we can see from the graph, as mean of schooling year increases, the mean of expectancy increases, and the BMI increases too. The point representing Tuvalu and Marshall Islands contains 0 year of schooling, it does not show the actual situation, I am going to remove the point.
 
-
 ```{r, echo=FALSE}
-
-new_life %>% filter(Country !="Tuvalu" & Country!="Marshall Islands")%>%
+ new_life %>% 
   plot_ly(x=~mean_Schooling, y=~mean_life_expectancy, type="scatter",  mode='markers', color=~Country, size=~mean_BMI,
           sizes=c(3,25), marker=list(sizemode='diameter', opacity=1),
           hover_info="text", text=~paste(paste0("Country: ", Country),
@@ -101,9 +98,7 @@ new_life %>% filter(Country !="Tuvalu" & Country!="Marshall Islands")%>%
          hovermode = "compare",
          legend = list(font = list(size = 10))
   )
-
 ```
-
 
 ## part2
 
@@ -125,6 +120,7 @@ As we can see, for the most of the countries, the life expectancy increases as y
 ## part3
 
 The Heatmap is created to show the changing of GDP for different years and countries.
+
 
 ```{r, echo=FALSE}
 filter_year <- c("2000", "2003", "2006", "2009", "2012","2015" )
