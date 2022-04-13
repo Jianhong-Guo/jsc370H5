@@ -1,0 +1,149 @@
+---
+title: "Visulization"
+author: "Jianhong Guo"
+date: '2022-04-13'
+output: 
+  html_document:
+    toc: True
+    toc_float: True
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, eval=TRUE)
+```
+
+# Interative visuals
+
+```{r, echo=FALSE}
+library(data.table)
+library(dplyr)
+library(tidyverse)
+library(ggpubr)
+library(plotly)
+
+```
+
+
+```{r, echo=FALSE}
+life <-fread("Life Expectancy Data.csv")
+```
+
+
+```{r, echo=FALSE}
+life <- rename(life, life_expectancy = `Life expectancy`,adult_mortalit = `Adult Mortality`, infant_deaths = `infant deaths`,
+             percentage_expenditure = `percentage expenditure`,Hepatitis_B= `Hepatitis B`, under_five_deaths = `under-five deaths`,
+             total_expenditure=`Total expenditure`,  Hiv_aids =`HIV/AIDS`, thinness_1_19=`thinness  1-19 years`,thinness_5_9=`thinness 5-9 years`,income_composition=`Income composition of resources`
+             )
+```
+
+
+
+```{r, echo=FALSE}
+life[, life_expectancy:= ifelse(is.na(life_expectancy), mean(life_expectancy,na.rm =TRUE), life_expectancy), by = .(Year, Status)]
+life[, adult_mortalit:= ifelse(is.na(adult_mortalit), as.integer(mean(adult_mortalit,na.rm =TRUE)), adult_mortalit), by = .(Year, Status)]
+life[, Alcohol:= ifelse(is.na(Alcohol), mean(Alcohol,na.rm =TRUE), Alcohol), by=.(Year, Status)]
+life[, Hepatitis_B:= ifelse(is.na(Hepatitis_B), as.integer(mean(Hepatitis_B,na.rm =TRUE)), Hepatitis_B), by = .(Year, Status)]
+life[, BMI:= ifelse(is.na(BMI), mean(BMI,na.rm =TRUE), BMI), by = .(Year, Status)]
+life[, Polio:= ifelse(is.na(Polio), as.integer(mean(Polio,na.rm =TRUE)), Polio), by =  .(Year, Status)]
+life[, total_expenditure:= ifelse(is.na(total_expenditure), mean(total_expenditure,na.rm =TRUE), total_expenditure), by = .( Status)]
+life[, Diphtheria:= ifelse(is.na(Diphtheria), as.integer(mean(Diphtheria,na.rm =TRUE)), Diphtheria), by = .(Year, Status)]
+life[, GDP:= ifelse(is.na(GDP), mean(GDP,na.rm =TRUE), GDP), by = .(Year, Status)]
+life[, Population:= ifelse(is.na(Population), mean(Population,na.rm =TRUE), Population),by = .(Year, Status)]
+life[, thinness_1_19:= ifelse(is.na(thinness_1_19), mean(thinness_1_19,na.rm =TRUE), thinness_1_19), by = .(Year, Status)]
+life[, thinness_5_9:= ifelse(is.na(thinness_5_9), mean(thinness_5_9,na.rm =TRUE), thinness_5_9),by = .(Year, Status)]
+life[, income_composition:= ifelse(is.na(income_composition), mean(income_composition,na.rm =TRUE), income_composition),by = .(Year, Status)]
+life[, Schooling:= ifelse(is.na(Schooling), mean(Schooling,na.rm =TRUE), Schooling), by = .(Year, Status)]
+life[, Country:= ifelse(Country=="United Kingdom of Great Britain and Northern Ireland", "United Kingdom", Country)]
+life[, Country:= ifelse(Country=="Democratic People's Republic of Korea", "Korea", Country)]
+life[, Country:= ifelse(Country=="Democratic Republic of the Congo", "Congo", Country)]
+new_life = life[, list(mean_BMI=mean(BMI), mean_Schooling=mean(Schooling), mean_life_expectancy=mean(life_expectancy)), by=Country]
+
+```
+
+## Part1
+
+In this part, a scatterplot is created using plt_ly() function to show mean Schooling vs. mean life expectancy among year 2000-2015 for each country.  The color points by country and the size points by BMI.
+
+```{r, echo=FALSE}
+
+new_life %>% 
+  plot_ly(x=~mean_Schooling, y=~mean_life_expectancy, type="scatter",  mode='markers', color=~Country, size=~mean_BMI,
+          sizes=c(3,25), marker=list(sizemode='diameter', opacity=1),
+          hover_info="text", text=~paste(paste0("Country: ", Country),
+                                         paste0("Schooling: ", mean_Schooling),
+                                         paste0("BMI: ", mean_BMI),
+                                         paste0("Life expectancy: ", mean_life_expectancy),
+                                         sep = "<br>"))%>%
+  layout(title="schooling vs. life expectancy", 
+         yaxis=list(title="mean of life expectancy"),
+         xaxis=list(title="mean of schooling"),
+         hovermode = "compare",
+         legend = list(font = list(size = 10))
+  )
+```
+
+As we can see from the graph, as mean of schooling year increases, the mean of expectancy increases, and the BMI increases too. The point representing Tuvalu and Marshall Islands contains 0 year of schooling, it does not show the actual situation, I am going to remove the point.
+
+
+```{r, echo=FALSE}
+
+new_life %>% filter(Country !="Tuvalu" & Country!="Marshall Islands")%>%
+  plot_ly(x=~mean_Schooling, y=~mean_life_expectancy, type="scatter",  mode='markers', color=~Country, size=~mean_BMI,
+          sizes=c(3,25), marker=list(sizemode='diameter', opacity=1),
+          hover_info="text", text=~paste(paste0("Country: ", Country),
+                                         paste0("Schooling: ", mean_Schooling),
+                                         paste0("BMI: ", mean_BMI),
+                                         paste0("Life expectancy: ", mean_life_expectancy),
+                                         sep = "<br>"))%>%
+  layout(title="schooling vs. life expectancy", 
+         yaxis=list(title="mean of life expectancy"),
+         xaxis=list(title="mean of schooling"),
+         hovermode = "compare",
+         legend = list(font = list(size = 10))
+  )
+
+```
+
+
+## part2
+
+In this part, line chart is created to show the changing of the life expectancy by time for different countries.
+
+```{r, echo=FALSE}
+
+life%>%
+  plot_ly(x=~ Year, y=~life_expectancy, color = ~Country, type="scatter", mode='lines', hover_info="text", text=~paste(paste0("Country: ", Country))) %>%
+  layout(title="year vs. life expectancy ", 
+         yaxis=list(title="life expectancy"),
+         xaxis=list(title="year"),
+         hovermode = "compare",
+         legend = list(font = list(size = 10)))
+```
+
+As we can see, for the most of the countries, the life expectancy increases as year increases. However, for some countries, the life expectancy may change a lot for a specific year. For example, in 2010 in Haiti, the 2010 Haiti earthquake is the main reason causing the low life expectancy.
+
+## part3
+
+The Heatmap is created to show the changing of GDP for different years and countries.
+
+```{r, echo=FALSE}
+filter_year <- c("2000", "2003", "2006", "2009", "2012","2015" )
+life_mat1 <- life %>%
+  select(Country, Year, GDP)%>%
+  filter( Year %in% filter_year)
+life_mat2 <- as.data.frame(pivot_wider(life_mat1, names_from=Country, values_from = GDP))
+
+gdp <- life_mat2 %>%
+  column_to_rownames("Year")%>%
+  as.matrix()
+
+plot_ly(x=colnames(gdp), y=rownames(gdp), z=~gdp, type = 'heatmap')%>%
+  layout(title="Heatmap of GDP by year and country ", 
+         yaxis=list(title="year"),
+         xaxis=list(title="country"),
+         hovermode = "compare",
+         legend = list(font = list(size = 10)))
+```
+
+As we can see, most of the countries has GDP less than 20k. The GDP of most countries remain
+in the same ranges of color from 2000 to 2015.
