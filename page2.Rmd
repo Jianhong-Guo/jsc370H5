@@ -53,9 +53,6 @@ life[, thinness_1_19:= ifelse(is.na(thinness_1_19), mean(thinness_1_19,na.rm =TR
 life[, thinness_5_9:= ifelse(is.na(thinness_5_9), mean(thinness_5_9,na.rm =TRUE), thinness_5_9),by = .(Year, Status)]
 life[, income_composition:= ifelse(is.na(income_composition), mean(income_composition,na.rm =TRUE), income_composition),by = .(Year, Status)]
 life[, Schooling:= ifelse(is.na(Schooling), mean(Schooling,na.rm =TRUE), Schooling), by = .(Year, Status)]
-life[, Country:= ifelse(Country=="United Kingdom of Great Britain and Northern Ireland", "United Kingdom", ifelse(Country=="Democratic People's Republic of Korea","Korea",Country ))]
-
-new_life = life[, list(mean_BMI=mean(BMI), mean_Schooling=mean(Schooling), mean_life_expectancy=mean(life_expectancy)), by=Country]
 
 ```
 
